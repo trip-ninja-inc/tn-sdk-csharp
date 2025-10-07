@@ -24,7 +24,7 @@ public class TnApi(string accessToken, string refreshToken, bool isSandbox = fal
     /// </summary>
     /// <param name="jsonData">A JSON-encoded string.</param>
     /// <returns>Compressed and base64-encoded byte array.</returns>
-    /// <exception cref="InvalidDataException">Thrown if input is null or empty or not a valid JSON string.</exception>
+    /// <exception cref="TnApiInvalidDataException">Thrown if input is null or empty or not a valid JSON string.</exception>
     public byte[] PrepareDataForGenerateSolutions(string jsonData)
     {
         // Validate jsonData
