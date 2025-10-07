@@ -1,11 +1,8 @@
-namespace TN.SDK
+namespace TN.SDK;
+
+public class TnApiException(string code = TnApiException.DEFAULT_CODE, string message = TnApiException.DEFAULT_MESSAGE) : Exception
 {
-    /// <summary>
-    /// Base class for all Trip Ninja SDK exceptions.
-    /// </summary>
-    public class TnApiException(string message = TnApiException.DEFAULT_MESSAGE, string code = TnApiException.DEFAULT_CODE) : Exception(message)
-    {
-        private const string DEFAULT_MESSAGE = "Fallback error message for Trip Ninja SDK";
+    private const string DEFAULT_MESSAGE = "Fallback error message for Trip Ninja SDK";
     private const string DEFAULT_CODE = "SDK_ERROR";
 
     public string Code { get; } = code;
@@ -17,19 +14,14 @@ namespace TN.SDK
     }
 }
 
+
 /// <summary>
 /// Raised when invalid or malformed data is passed to an SDK function.
 /// </summary>
-public class TnApiInvalidDataException : TnApiException
+public class TnApiInvalidDataException(string code = TnApiInvalidDataException.DEFAULT_CODE, string message = TnApiInvalidDataException.DEFAULT_MESSAGE) : TnApiException(code, message)
 {
 
     private const string DEFAULT_MESSAGE = "Invalid or malformed data";
     private const string DEFAULT_CODE = "INVALID_DATA";
 
-    public TnApiInvalidDataException() : base(DEFAULT_MESSAGE, DEFAULT_CODE) { }
-
-    public TnApiInvalidDataException(string message) : base(message, DEFAULT_CODE) { }
-    public TnApiInvalidDataException(string message, string code) : base(message, code) { }
 }
-}
-

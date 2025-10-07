@@ -1,3 +1,1 @@
-﻿namespace TN.SDK
-{
-}
+﻿namespace TN.SDK;

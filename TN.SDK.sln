@@ -9,7 +9,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{827E0CD3-B72
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TN.SDK", "TN.SDK", "{1E047B40-A63B-16C4-6C3B-73AB56945332}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TnSDKTest", "src\TnSDKTest\TnSDKTest.csproj", "{61245546-E107-46F7-9D3B-7F1B83E932AB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TN.SDK.Test", "src\TN.SDK.Test\TN.SDK.Test.csproj", "{61245546-E107-46F7-9D3B-7F1B83E932AB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

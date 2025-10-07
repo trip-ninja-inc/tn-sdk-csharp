@@ -1,63 +1,52 @@
 using System.IO.Compression;
 using System.Text;
 
-namespace TN.SDK
+namespace TN.SDK;
+
+/// <summary>
+/// The entrypoint to the Trip Ninja SDK. Exposes useful functionality of the Trip Ninja API to the end user.
+/// </summary>
+/// <param name="accessToken">The token provided by the Admin Panel that is used to gain access to the API.</param>
+/// <param name="refreshToken"> The token provided by the Admin Panel that is used to refresh a user's access token.</param>
+/// <param name="isSandbox">Whether the client is connecting to the sandbox or the production environment.</param>
+public class TnApi(string accessToken, string refreshToken, bool isSandbox = false)
 {
+    private static readonly string TN_BASE_PROD_URL = Constants.ApiAurls.PRODUCTION_API_URL;
+    private static readonly string TN_BASE_SANDBOX_URL = Constants.ApiAurls.SANDBOX_API_URL;
+    private static readonly CompressionLevel GZIP_DEFAULT_COMPRESSION_LEVEL = Constants.CompressionSettings.DEFAULT_COMPRESSION_LEVEL;
+
+    private readonly string _accessToken = accessToken;
+    private readonly string _refreshToken = refreshToken;
+    private readonly string _baseUrl = isSandbox ? TN_BASE_SANDBOX_URL : TN_BASE_PROD_URL;
+
     /// <summary>
-    /// The entrypoint to the Trip Ninja SDK. Exposes useful functionality of the Trip Ninja API to the end user.
+    /// Compresses the input JSON string using GZip and encodes it in base64.
     /// </summary>
-    public class TnApi
+    /// <param name="jsonData">A JSON-encoded string.</param>
+    /// <returns>Compressed and base64-encoded byte array.</returns>
+    /// <exception cref="InvalidDataException">Thrown if input is null or empty or not a valid JSON string.</exception>
+    public byte[] PrepareDataForGenerateSolutions(string jsonData)
     {
-        private static readonly string TN_BASE_PROD_URL = Constants.ApiAurls.PRODUCTION_API_URL;
-        private static readonly string TN_BASE_SANDBOX_URL = Constants.ApiAurls.SANDBOX_API_URL;
-        private static readonly CompressionLevel GZIP_DEFAULT_COMPRESSION_LEVEL = Constants.CompressionSettings.DEFAULT_COMPRESSION_LEVEL;
-
-        private readonly string _accessToken;
-        private readonly string _refreshToken;
-        private string BaseUrl { get; }
-
-        /// <summary>
-        /// Initializes and instantiates the SDK client.
-        /// </summary>
-        /// <param name="accessToken">The token provided by the Admin Panel that is used to gain access to the API.</param>
-        /// <param name="refreshToken"> The token provided by the Admin Panel that is used to refresh a user's access token.</param>
-        /// <param name="isSandbox">Whether the client is connecting to the sandbox or the production environment.</param>
-        public TnApi(string accessToken, string refreshToken, bool isSandbox = false)
+        // Validate jsonData
+        if (string.IsNullOrWhiteSpace(jsonData))
         {
-            _accessToken = accessToken;
-            _refreshToken = refreshToken;
-            BaseUrl = isSandbox ? TN_BASE_SANDBOX_URL : TN_BASE_PROD_URL;
+            throw new TnApiInvalidDataException("Input must be a valid JSON-encoded string");
         }
 
-        /// <summary>
-        /// Compresses the input JSON string using GZip and encodes it in base64.
-        /// </summary>
-        /// <param name="jsonData">A JSON-encoded string.</param>
-        /// <returns>Compressed and base64-encoded byte array.</returns>
-        /// <exception cref="InvalidDataException">Thrown if input is null or empty or not a valid JSON string.</exception>
-        public byte[] PrepareDataForGenerateSolutions(string jsonData)
+        // Encode the jsonData into bytes
+        byte[] inputBytes = Encoding.UTF8.GetBytes(jsonData);
+
+        // Compress
+        using MemoryStream outputStream = new();
+        using (GZipStream gzipStream = new(outputStream, GZIP_DEFAULT_COMPRESSION_LEVEL))
         {
-            // Validate jsonData
-            if (string.IsNullOrWhiteSpace(jsonData))
-            {
-                throw new TnApiInvalidDataException("Input must be a valid JSON-encoded string");
-            }
-
-            // Encode the jsonData into bytes
-            byte[] inputBytes = Encoding.UTF8.GetBytes(jsonData);
-
-            // Compress
-            using var outputStream = new MemoryStream();
-            using (var gzipStream = new GZipStream(outputStream, GZIP_DEFAULT_COMPRESSION_LEVEL))
-            {
-                gzipStream.Write(inputBytes, 0, inputBytes.Length);
-            }
-
-            // Convert back byte array
-            byte[] compressedData = outputStream.ToArray();
-
-            // Convert to base64 and return bytes
-            return Encoding.UTF8.GetBytes(Convert.ToBase64String(compressedData));
+            gzipStream.Write(inputBytes, 0, inputBytes.Length);
         }
+
+        // Convert back byte array
+        byte[] compressedData = outputStream.ToArray();
+
+        // Convert to base64 and return bytes
+        return Encoding.UTF8.GetBytes(Convert.ToBase64String(compressedData));
     }
 }
