@@ -10,14 +10,14 @@ public sealed class TestPrepareDataForGenerateSolutions
 
     private static byte[] CompressAndEncode(object inputData)
     {
-        
+
         string json = JsonSerializer.Serialize(inputData);
         byte[] jsonBytes = Encoding.UTF8.GetBytes(json);
 
-        
+
         byte[] compressedBytes = Compress(jsonBytes);
 
-        
+
         string base64 = Convert.ToBase64String(compressedBytes);
         return Encoding.UTF8.GetBytes(base64);
     }

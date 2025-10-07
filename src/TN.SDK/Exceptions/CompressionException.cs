@@ -1,11 +1,11 @@
-namespace TN.SDK;
-
-/// <summary>
-/// Base class for all Trip Ninja SDK exceptions.
-/// </summary>
-public class TnApiException(string message = TnApiException.DEFAULT_MESSAGE, string code = TnApiException.DEFAULT_CODE) : Exception(message)
+namespace TN.SDK
 {
-    private const string DEFAULT_MESSAGE = "Fallback error message for Trip Ninja SDK";
+    /// <summary>
+    /// Base class for all Trip Ninja SDK exceptions.
+    /// </summary>
+    public class TnApiException(string message = TnApiException.DEFAULT_MESSAGE, string code = TnApiException.DEFAULT_CODE) : Exception(message)
+    {
+        private const string DEFAULT_MESSAGE = "Fallback error message for Trip Ninja SDK";
     private const string DEFAULT_CODE = "SDK_ERROR";
 
     public string Code { get; } = code;
@@ -31,3 +31,5 @@ public class TnApiInvalidDataException : TnApiException
     public TnApiInvalidDataException(string message) : base(message, DEFAULT_CODE) { }
     public TnApiInvalidDataException(string message, string code) : base(message, code) { }
 }
+}
+
