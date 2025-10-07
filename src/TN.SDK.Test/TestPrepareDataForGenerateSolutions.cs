@@ -24,8 +24,8 @@ public sealed class TestPrepareDataForGenerateSolutions
 
     private static byte[] Compress(byte[] data)
     {
-        using var output = new MemoryStream();
-        using (var gzip = new GZipStream(output, CompressionLevel.Optimal))
+        using MemoryStream output = new();
+        using (GZipStream gzip = new(output, CompressionLevel.Optimal))
         {
             gzip.Write(data, 0, data.Length);
         }
@@ -61,6 +61,10 @@ public sealed class TestPrepareDataForGenerateSolutions
         TnApi tnApi = new("", "");
 
         // Assert
-        Assert.ThrowsException<TnApiInvalidDataException>(() => tnApi.PrepareDataForGenerateSolutions(""));
+        TnApiInvalidDataException exception = Assert.ThrowsException<TnApiInvalidDataException>(() => tnApi.PrepareDataForGenerateSolutions(""));
+
+        Assert.AreEqual("Input must be a valid JSON-encoded string", exception.Message);
+        Assert.AreEqual("INVALID_DATA", exception.Code);
+
     }
 }
