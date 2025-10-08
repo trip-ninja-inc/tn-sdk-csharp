@@ -65,7 +65,9 @@ This enables live updates as you modify the source
 
 ---
 
-### Linting
+### Linting and Formatting
 
 Linting is done using the [Roslyn Analyzers](https://learn.microsoft.com/en-us/visualstudio/code-quality/roslyn-analyzers-overview)
+
+Formatting is done using `dotnet format`
 
