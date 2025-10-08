@@ -4,19 +4,15 @@ using System.Text.Json;
 
 namespace TN.SDK.Test;
 
-[TestClass]
+[TestFixture]
 public sealed class TestPrepareDataForGenerateSolutions
 {
-
     private static byte[] CompressAndEncode(object inputData)
     {
-
         string json = JsonSerializer.Serialize(inputData);
         byte[] jsonBytes = Encoding.UTF8.GetBytes(json);
 
-
         byte[] compressedBytes = Compress(jsonBytes);
-
 
         string base64 = Convert.ToBase64String(compressedBytes);
         return Encoding.UTF8.GetBytes(base64);
@@ -32,8 +28,7 @@ public sealed class TestPrepareDataForGenerateSolutions
         return output.ToArray();
     }
 
-
-    [TestMethod]
+    [Test]
     public void Test_Prepare_Data_For_Generate_Solutions_Valid_Data_Returns_Bytes()
     {
         // Arrange
@@ -44,27 +39,27 @@ public sealed class TestPrepareDataForGenerateSolutions
         // Compute Expected result
         byte[] expectedData = CompressAndEncode(inputData);
 
-
         // Act
         byte[] encodedData = tnApi.PrepareDataForGenerateSolutions(jsonData);
-
         bool isDataEqual = expectedData.SequenceEqual(encodedData);
 
         // Assert
-        Assert.IsTrue(isDataEqual);
+        Assert.That(isDataEqual, Is.True);
     }
 
-    [TestMethod]
+    [Test]
     public void Test_Prepare_Data_For_Generate_Solutions_Invalid_Data_Raises_Exception()
     {
         // Arrange
         TnApi tnApi = new("", "");
 
-        // Assert
-        TnApiInvalidDataException exception = Assert.ThrowsException<TnApiInvalidDataException>(() => tnApi.PrepareDataForGenerateSolutions(""));
+        // Act & Assert
+        TnApiInvalidDataException exception = Assert.Throws<TnApiInvalidDataException>(() => tnApi.PrepareDataForGenerateSolutions(""));
 
-        Assert.AreEqual("Input must be a valid JSON-encoded string", exception.Message);
-        Assert.AreEqual("INVALID_DATA", exception.Code);
-
+        Assert.Multiple(() =>
+        {
+            Assert.That(exception.Message, Is.EqualTo("Input must be a valid JSON-encoded string"));
+            Assert.That(exception.Code, Is.EqualTo("INVALID_DATA"));
+        });
     }
 }
