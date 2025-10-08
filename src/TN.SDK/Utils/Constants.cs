@@ -4,7 +4,7 @@ namespace TN.SDK;
 
 public static class Constants
 {
-    public static class ApiAurls
+    public static class ApiUrls
     {
         public const string SANDBOX_API_URL = "https://sandbox.tripninja.io";
         public const string PRODUCTION_API_URL = "https://api.tripninja.io";
