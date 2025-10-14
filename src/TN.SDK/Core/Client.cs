@@ -13,7 +13,7 @@ public class TnApi(string accessToken, string refreshToken, bool isSandbox = fal
 {
     private static readonly string TN_BASE_PROD_URL = Constants.ApiUrls.PRODUCTION_API_URL;
     private static readonly string TN_BASE_SANDBOX_URL = Constants.ApiUrls.SANDBOX_API_URL;
-    private static readonly CompressionLevel GZIP_DEFAULT_COMPRESSION_LEVEL = Constants.CompressionSettings.DEFAULT_COMPRESSION_LEVEL;
+    private static readonly CompressionLevel ZLIB_DEFAULT_COMPRESSION_LEVEL = Constants.CompressionSettings.DEFAULT_COMPRESSION_LEVEL;
 
     private readonly string _accessToken = accessToken;
     private readonly string _refreshToken = refreshToken;
@@ -25,7 +25,7 @@ public class TnApi(string accessToken, string refreshToken, bool isSandbox = fal
     /// <param name="jsonData">A JSON-encoded string.</param>
     /// <returns>Compressed and base64-encoded byte array.</returns>
     /// <exception cref="TnApiInvalidDataException">Thrown if input is null or empty or not a valid JSON string.</exception>
-    public byte[] PrepareDataForGenerateSolutions(string jsonData)
+    public string PrepareDataForGenerateSolutions(string jsonData)
     {
         // Validate jsonData
         if (string.IsNullOrWhiteSpace(jsonData))
@@ -36,17 +36,19 @@ public class TnApi(string accessToken, string refreshToken, bool isSandbox = fal
         // Encode the jsonData into bytes
         byte[] inputBytes = Encoding.UTF8.GetBytes(jsonData);
 
-        // Compress
-        using MemoryStream outputStream = new();
-        using (GZipStream gzipStream = new(outputStream, GZIP_DEFAULT_COMPRESSION_LEVEL))
+        // ZLibStream compression
+        using MemoryStream memoryStream = new();
+        using (ZLibStream deflateStream = new(memoryStream, ZLIB_DEFAULT_COMPRESSION_LEVEL, true))
         {
-            gzipStream.Write(inputBytes, 0, inputBytes.Length);
+            deflateStream.Write(inputBytes, 0, inputBytes.Length);
         }
 
         // Convert back byte array
-        byte[] compressedData = outputStream.ToArray();
+        byte[] compressedData = memoryStream.ToArray();
 
-        // Convert to base64 and return bytes
-        return Encoding.UTF8.GetBytes(Convert.ToBase64String(compressedData));
+        // Convert to base64 and return string
+        string preparedDataString = Convert.ToBase64String(compressedData);
+
+        return preparedDataString;
     }
 }
