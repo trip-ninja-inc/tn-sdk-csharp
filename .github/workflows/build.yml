@@ -33,29 +33,27 @@ jobs:
 
       - name: Run NUnit Tests
         run: |
-          dotnet test --no-build --verbosity normal \
-            --configuration Release \
+            dotnet test --no-build --verbosity normal \
             --results-directory TestResults \
-            --logger "nunit;LogFileName=TestResult.xml"
+            --logger "trx;LogFileName=TestResult.trx"
 
       - name: Upload NUnit Test Results
         uses: actions/upload-artifact@v4
         with:
           name: nunit-test-results
-          path: TestResults/TestResult.xml
+          path: TestResults/TestResult.trx
 
       - name: SonarQube Begin Analysis
         if: contains(github.event.pull_request.labels.*.name, 'ready-for-sonar-checks')
         run: |
-          dotnet tool install --global dotnet-sonarscanner --version 5.*
-          export PATH="$PATH:$HOME/.dotnet/tools"
-          dotnet sonarscanner begin \
-            /k:"YOUR_PROJECT_KEY" \
-            /o:"YOUR_ORG" \
-            /d:sonar.host.url="https://YOUR_SONARQUBE_URL" \
-            /d:sonar.login="${{ secrets.SONAR_TOKEN }}" \
-            /d:sonar.cs.nunit.reportsPaths="TestResults/TestResult.xml" \
-            /d:sonar.qualitygate.wait=true
+            dotnet tool install --global dotnet-sonarscanner --version 5.*
+            export PATH="$PATH:$HOME/.dotnet/tools"
+            dotnet sonarscanner begin \
+                /k:"YOUR_PROJECT_KEY" \
+                /o:"YOUR_ORG" \
+                /d:sonar.host.url="https://YOUR_SONARQUBE_URL" \
+                /d:sonar.login="${{ secrets.SONAR_TOKEN }}" \
+                /d:sonar.cs.vstest.reportsPaths="TestResults/TestResult.trx"
 
       - name: Build for Sonar
         if: contains(github.event.pull_request.labels.*.name, 'ready-for-sonar-checks')
