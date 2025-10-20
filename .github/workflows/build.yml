@@ -33,21 +33,13 @@ jobs:
 
       - name: Run NUnit Tests
         run: |
-          echo "Cleaning workspace..."
-          rm -rf TestResults || true
-          dotnet clean
-
-          echo "Building test project..."
-          dotnet build src/TN.SDK.Test/TN.SDK.Test.csproj --configuration Release
-
-          echo "Running tests with TRX logger..."
-          dotnet test src/TN.SDK.Test/TN.SDK.Test.csproj \
-            --no-build --verbosity normal \
+            dotnet clean
+            dotnet build --configuration Release
+            dotnet test src/TN.SDK.Test/TN.SDK.Test.csproj \
+            --no-build \
+            --configuration Release \
             --results-directory TestResults \
             --logger "trx;LogFileName=TestResult.trx"
-
-          echo "Tests complete. Listing results:"
-          ls -R TestResults || true
 
       - name: Upload NUnit Test Results
         uses: actions/upload-artifact@v4
