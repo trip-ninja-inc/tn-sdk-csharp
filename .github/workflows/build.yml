@@ -1,0 +1,68 @@
+name: PR Decoration - C# SonarQube
+
+on:
+    push:
+        branches:
+            - dev
+            - master
+            - "**"
+    pull_request:
+        types: [opened, synchronize, reopened, labeled]
+
+jobs:
+  build-test-sonar:
+    name: Build, Test & SonarQube
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET 9
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build project
+        run: dotnet build --no-restore --configuration Release
+
+      - name: Run NUnit Tests
+        run: |
+          dotnet test --no-build --verbosity normal --results-directory TestResults --logger "nunit;LogFilePath=TestResults/TestResult.xml"
+
+      - name: Upload NUnit Test Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: nunit-test-results
+          path: TestResults/TestResult.xml
+
+      - name: SonarQube Begin Analysis
+        if: contains(github.event.pull_request.labels.*.name, 'ready-for-sonar-checks')
+        run: |
+          dotnet tool install --global dotnet-sonarscanner --version 5.*
+          export PATH="$PATH:$HOME/.dotnet/tools"
+          dotnet sonarscanner begin \
+            /k:"YOUR_PROJECT_KEY" \
+            /o:"YOUR_ORG" \
+            /d:sonar.host.url="https://YOUR_SONARQUBE_URL" \
+            /d:sonar.login="${{ secrets.SONAR_TOKEN }}" \
+            /d:sonar.cs.nunit.reportsPaths="TestResults/TestResult.xml"
+
+      - name: Build for Sonar
+        if: contains(github.event.pull_request.labels.*.name, 'ready-for-sonar-checks')
+        run: dotnet build --no-restore --configuration Release
+
+      - name: SonarQube End Analysis
+        if: contains(github.event.pull_request.labels.*.name, 'ready-for-sonar-checks')
+        run: dotnet sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
+
+      - name: Fail if SonarQube Quality Gate Fails
+        if: contains(github.event.pull_request.labels.*.name, 'ready-for-sonar-checks')
+        uses: sonarsource/sonarcloud-github-action@v2
+        with:
+          args: -Dsonar.login=${{ secrets.SONAR_TOKEN }} -Dsonar.qualitygate.wait=true
