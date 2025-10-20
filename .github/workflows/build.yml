@@ -33,7 +33,10 @@ jobs:
 
       - name: Run NUnit Tests
         run: |
-          dotnet test --no-build --verbosity normal --results-directory TestResults --logger "nunit;LogFilePath=TestResults/TestResult.xml"
+          dotnet test --no-build --verbosity normal \
+            --configuration Release \
+            --results-directory TestResults \
+            --logger "nunit;LogFileName=TestResult.xml"
 
       - name: Upload NUnit Test Results
         uses: actions/upload-artifact@v4
@@ -51,7 +54,8 @@ jobs:
             /o:"YOUR_ORG" \
             /d:sonar.host.url="https://YOUR_SONARQUBE_URL" \
             /d:sonar.login="${{ secrets.SONAR_TOKEN }}" \
-            /d:sonar.cs.nunit.reportsPaths="TestResults/TestResult.xml"
+            /d:sonar.cs.nunit.reportsPaths="TestResults/TestResult.xml" \
+            /d:sonar.qualitygate.wait=true
 
       - name: Build for Sonar
         if: contains(github.event.pull_request.labels.*.name, 'ready-for-sonar-checks')
@@ -59,10 +63,14 @@ jobs:
 
       - name: SonarQube End Analysis
         if: contains(github.event.pull_request.labels.*.name, 'ready-for-sonar-checks')
-        run: dotnet sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
+        run: |
+          export PATH="$PATH:$HOME/.dotnet/tools"
+          dotnet sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
 
-      - name: Fail if SonarQube Quality Gate Fails
+      - name: Enforce SonarQube Quality Gate
         if: contains(github.event.pull_request.labels.*.name, 'ready-for-sonar-checks')
         uses: sonarsource/sonarcloud-github-action@v2
         with:
-          args: -Dsonar.login=${{ secrets.SONAR_TOKEN }} -Dsonar.qualitygate.wait=true
+          args: >
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+            -Dsonar.qualitygate.wait=true
