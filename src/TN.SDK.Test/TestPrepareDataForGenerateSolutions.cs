@@ -7,7 +7,7 @@ namespace TN.SDK.Test;
 [TestFixture]
 public sealed class TestPrepareDataForGenerateSolutions
 {
-    private static byte[] CompressAndEncode(object inputData)
+    private static string CompressAndEncode(object inputData)
     {
         string json = JsonSerializer.Serialize(inputData);
         byte[] jsonBytes = Encoding.UTF8.GetBytes(json);
@@ -15,15 +15,15 @@ public sealed class TestPrepareDataForGenerateSolutions
         byte[] compressedBytes = Compress(jsonBytes);
 
         string base64 = Convert.ToBase64String(compressedBytes);
-        return Encoding.UTF8.GetBytes(base64);
+        return base64;
     }
 
     private static byte[] Compress(byte[] data)
     {
         using MemoryStream output = new();
-        using (GZipStream gzip = new(output, CompressionLevel.Optimal))
+        using (ZLibStream zlib = new(output, CompressionLevel.Optimal))
         {
-            gzip.Write(data, 0, data.Length);
+            zlib.Write(data, 0, data.Length);
         }
         return output.ToArray();
     }
@@ -37,10 +37,10 @@ public sealed class TestPrepareDataForGenerateSolutions
         TnApi tnApi = new("", "");
 
         // Compute Expected result
-        byte[] expectedData = CompressAndEncode(inputData);
+        string expectedData = CompressAndEncode(inputData);
 
         // Act
-        byte[] encodedData = tnApi.PrepareDataForGenerateSolutions(jsonData);
+        string encodedData = tnApi.PrepareDataForGenerateSolutions(jsonData);
         bool isDataEqual = expectedData.SequenceEqual(encodedData);
 
         // Assert
