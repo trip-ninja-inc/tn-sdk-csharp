@@ -45,7 +45,7 @@ jobs:
         run: dotnet tool install --global dotnet-coverage
 
       - name: Collect code coverage
-        run: dotnet-coverage collect --format cobertura --output coverage.xml dotnet test
+        run: dotnet-coverage collect --format cobertura --output coverage.xml -- dotnet test src/TN.SDK.Test/TN.SDK.Test.csproj --no-build --configuration Release
 
       - name: SonarCloud Analysis
         if: contains(github.event.pull_request.labels.*.name, 'ready-for-sonar-checks')
