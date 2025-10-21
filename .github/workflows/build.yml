@@ -39,7 +39,8 @@ jobs:
             --no-build \
             --configuration Release \
             --results-directory TestResults \
-            --logger "trx;LogFileName=TestResult.trx"
+            --logger "trx;LogFileName=TestResult.trx" \
+            --collect:"XPlat Code Coverage"
 
       - name: Upload NUnit Results
         uses: actions/upload-artifact@v4
@@ -57,6 +58,13 @@ jobs:
             /o:"trip-ninja-inc-1" \
             /d:sonar.host.url="https://sonarcloud.io" \
             /d:sonar.login="${{ secrets.SONAR_TOKEN }}" \
-            /d:sonar.cs.vstest.reportsPaths="TestResults/TestResult.trx"
+            /d:sonar.cs.vstest.reportsPaths="TestResults/TestResult.trx" \
+            /d:sonar.cs.opencover.reportsPaths="**/coverage.cobertura.xml"
           dotnet build --no-restore --configuration Release
+          dotnet test src/TN.SDK.Test/TN.SDK.Test.csproj \
+            --no-build \
+            --configuration Release \
+            --results-directory TestResults \
+            --logger "trx;LogFileName=TestResult.trx" \
+            --collect:"XPlat Code Coverage"
           dotnet sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
