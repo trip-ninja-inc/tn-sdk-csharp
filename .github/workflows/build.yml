@@ -72,7 +72,8 @@ jobs:
       - name: Enforce SonarQube Quality Gate
         if: contains(github.event.pull_request.labels.*.name, 'ready-for-sonar-checks')
         uses: sonarsource/sonarcloud-github-action@v2
+        env:
+            SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           args: >
-            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
             -Dsonar.qualitygate.wait=true
