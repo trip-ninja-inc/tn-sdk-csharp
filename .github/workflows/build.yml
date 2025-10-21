@@ -1,0 +1,47 @@
+name: PR Decoration - C# SonarQube
+
+on:
+    push:
+        branches:
+            - dev
+            - master
+            - "**"
+    pull_request:
+        types: [opened, synchronize, reopened, labeled]
+
+jobs:
+  build-test-sonar:
+    name: Build, Test & SonarQube
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET 9
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: SonarCloud Analysis
+        if: contains(github.event.pull_request.labels.*.name, 'ready-for-sonar-checks')
+        run: |
+          dotnet tool install --global dotnet-sonarscanner --version 5.*
+          export PATH="$PATH:$HOME/.dotnet/tools"
+          dotnet sonarscanner begin \
+            /k:"trip-ninja-inc_tn-sdk-csharp" \
+            /o:"trip-ninja-inc-1" \
+            /d:sonar.host.url="https://sonarcloud.io" \
+            /d:sonar.login="${{ secrets.SONAR_TOKEN }}" \
+            /d:sonar.cs.opencover.reportsPaths="**/TestResults/*/coverage.opencover.xml" \
+            /d:sonar.qualitygate.wait=true
+          dotnet build --configuration Release
+          dotnet test src/TN.SDK.Test/TN.SDK.Test.csproj \
+            --no-build --configuration Release \
+            --collect:"XPlat Code Coverage;Format=opencover"
+          dotnet sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
