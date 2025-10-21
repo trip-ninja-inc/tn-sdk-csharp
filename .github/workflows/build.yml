@@ -39,8 +39,7 @@ jobs:
             --no-build \
             --configuration Release \
             --results-directory TestResults \
-            --logger "trx;LogFileName=TestResult.trx" \
-            --collect:"XPlat Code Coverage"
+            --logger "trx;LogFileName=TestResult.trx"
 
       - name: Upload NUnit Results
         uses: actions/upload-artifact@v4
@@ -52,6 +51,7 @@ jobs:
         if: contains(github.event.pull_request.labels.*.name, 'ready-for-sonar-checks')
         run: |
           dotnet tool install --global dotnet-sonarscanner --version 5.*
+          dotnet tool install --global dotnet-coverage
           export PATH="$PATH:$HOME/.dotnet/tools"
           dotnet sonarscanner begin \
             /k:"trip-ninja-inc_tn-sdk-csharp" \
@@ -61,10 +61,6 @@ jobs:
             /d:sonar.cs.vstest.reportsPaths="TestResults/TestResult.trx" \
             /d:sonar.cs.opencover.reportsPaths="**/coverage.cobertura.xml"
           dotnet build --no-restore --configuration Release
-          dotnet test src/TN.SDK.Test/TN.SDK.Test.csproj \
-            --no-build \
-            --configuration Release \
-            --results-directory TestResults \
-            --logger "trx;LogFileName=TestResult.trx" \
-            --collect:"XPlat Code Coverage"
+          dotnet coverage collect --output coverage.cobertura.xml --format cobertura \
+            -- dotnet test src/TN.SDK.Test/TN.SDK.Test.csproj --no-build --configuration Release
           dotnet sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
