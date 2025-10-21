@@ -41,7 +41,7 @@ jobs:
             --results-directory TestResults \
             --logger "trx;LogFileName=TestResult.trx"
 
-      - name: Upload NUnit Test Results
+      - name: Upload NUnit Results
         uses: actions/upload-artifact@v4
         with:
           name: nunit-test-results
