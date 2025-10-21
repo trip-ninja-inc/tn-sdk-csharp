@@ -15,10 +15,6 @@ public class TnApiException(
 
     public string Code { get; } = code;
 
-    public override string ToString()
-    {
-        return $"[{Code}] {Message}";
-    }
 }
 
 
