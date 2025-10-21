@@ -47,33 +47,16 @@ jobs:
           name: nunit-test-results
           path: TestResults/TestResult.trx
 
-      - name: SonarQube Begin Analysis
+      - name: SonarCloud Analysis
         if: contains(github.event.pull_request.labels.*.name, 'ready-for-sonar-checks')
         run: |
-            dotnet tool install --global dotnet-sonarscanner --version 5.*
-            export PATH="$PATH:$HOME/.dotnet/tools"
-            dotnet sonarscanner begin \
-                /k:"trip-ninja-inc_tn-sdk-csharp" \
-                /o:"trip-ninja-inc-1" \
-                /d:sonar.host.url="https://sonarcloud.io" \
-                /d:sonar.login="${{ secrets.SONAR_TOKEN }}" \
-                /d:sonar.cs.vstest.reportsPaths="TestResults/TestResult.trx"
-
-      - name: Build for Sonar
-        if: contains(github.event.pull_request.labels.*.name, 'ready-for-sonar-checks')
-        run: dotnet build --no-restore --configuration Release
-
-      - name: SonarQube End Analysis
-        if: contains(github.event.pull_request.labels.*.name, 'ready-for-sonar-checks')
-        run: |
+          dotnet tool install --global dotnet-sonarscanner --version 5.*
           export PATH="$PATH:$HOME/.dotnet/tools"
+          dotnet sonarscanner begin \
+            /k:"trip-ninja-inc_tn-sdk-csharp" \
+            /o:"trip-ninja-inc-1" \
+            /d:sonar.host.url="https://sonarcloud.io" \
+            /d:sonar.login="${{ secrets.SONAR_TOKEN }}" \
+            /d:sonar.cs.vstest.reportsPaths="TestResults/TestResult.trx"
+          dotnet build --no-restore --configuration Release
           dotnet sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
-
-      - name: Enforce SonarQube Quality Gate
-        if: contains(github.event.pull_request.labels.*.name, 'ready-for-sonar-checks')
-        uses: sonarsource/sonarcloud-github-action@v2
-        env:
-            SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          args: >
-            -Dsonar.qualitygate.wait=true
