@@ -1,7 +1,10 @@
 using System.IO.Compression;
 using System.Text;
 
-namespace TN.SDK;
+using TN.SDK.Exceptions;
+using TN.SDK.Utils;
+
+namespace TN.SDK.Core;
 
 /// <summary>
 /// The entrypoint to the Trip Ninja SDK. Exposes useful functionality of the Trip Ninja API to the end user.
@@ -25,7 +28,7 @@ public class TnApi(string accessToken, string refreshToken, bool isSandbox = fal
     /// <param name="jsonData">A JSON-encoded string.</param>
     /// <returns>Compressed and base64-encoded byte array.</returns>
     /// <exception cref="TnApiInvalidDataException">Thrown if input is null or empty or not a valid JSON string.</exception>
-    public string PrepareDataForGenerateSolutions(string jsonData)
+    public static string PrepareDataForGenerateSolutions(string jsonData)
     {
         // Validate jsonData
         if (string.IsNullOrWhiteSpace(jsonData))

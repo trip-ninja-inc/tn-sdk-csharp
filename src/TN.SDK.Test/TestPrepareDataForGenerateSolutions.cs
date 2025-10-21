@@ -2,6 +2,9 @@
 using System.Text;
 using System.Text.Json;
 
+using TN.SDK.Core;
+using TN.SDK.Exceptions;
+
 namespace TN.SDK.Test;
 
 [TestFixture]
@@ -34,13 +37,12 @@ public sealed class TestPrepareDataForGenerateSolutions
         // Arrange
         var inputData = new { test = "value" };
         string jsonData = JsonSerializer.Serialize(inputData);
-        TnApi tnApi = new("", "");
 
         // Compute Expected result
         string expectedData = CompressAndEncode(inputData);
 
         // Act
-        string encodedData = tnApi.PrepareDataForGenerateSolutions(jsonData);
+        string encodedData = TnApi.PrepareDataForGenerateSolutions(jsonData);
         bool isDataEqual = expectedData.SequenceEqual(encodedData);
 
         // Assert
@@ -50,11 +52,8 @@ public sealed class TestPrepareDataForGenerateSolutions
     [Test]
     public void Test_Prepare_Data_For_Generate_Solutions_Invalid_Data_Raises_Exception()
     {
-        // Arrange
-        TnApi tnApi = new("", "");
-
         // Act & Assert
-        TnApiInvalidDataException exception = Assert.Throws<TnApiInvalidDataException>(() => tnApi.PrepareDataForGenerateSolutions(""));
+        TnApiInvalidDataException exception = Assert.Throws<TnApiInvalidDataException>(() => TnApi.PrepareDataForGenerateSolutions(""));
 
         Assert.Multiple(() =>
         {

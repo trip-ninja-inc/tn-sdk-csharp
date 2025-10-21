@@ -1,13 +1,14 @@
 using System.IO.Compression;
 
-namespace TN.SDK;
+namespace TN.SDK.Utils;
 
 public static class Constants
 {
     public static class ApiUrls
     {
-        public const string SANDBOX_API_URL = "https://sandbox.tripninja.io";
-        public const string PRODUCTION_API_URL = "https://api.tripninja.io";
+        public static string SANDBOX_API_URL => Environment.GetEnvironmentVariable("API_SANDBOX_URL") ?? "https://sandbox.tripninja.io";
+
+        public static string PRODUCTION_API_URL => Environment.GetEnvironmentVariable("API_PRODUCTION_URL") ?? "https://api.tripninja.io";
     }
     public static class CompressionSettings
     {

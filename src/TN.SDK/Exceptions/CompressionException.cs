@@ -1,4 +1,4 @@
-namespace TN.SDK;
+namespace TN.SDK.Exceptions;
 
 /// <summary>
 /// Base class for all Trip Ninja SDK exceptions.
