@@ -13,6 +13,9 @@ public class TnApiException(
     private const string DEFAULT_MESSAGE = "Fallback error message for Trip Ninja SDK";
     private const string DEFAULT_CODE = "SDK_ERROR";
 
+    /// <summary>
+    /// Optional error code (similar to API error codes)
+    /// </summary>
     public string Code { get; } = code;
 
 }

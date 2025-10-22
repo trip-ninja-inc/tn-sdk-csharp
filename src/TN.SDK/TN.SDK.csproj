@@ -5,6 +5,29 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- NuGet metadata -->
+    <PackageId>TN.SDK</PackageId>
+    <Version>0.0.1</Version>
+    <Authors>Trip Ninja</Authors>
+    <Company>Trip Ninja</Company>
+    <Product>TN.SDK</Product>
+    <Description>The official Trip Ninja SDK for interacting with the Trip Ninja API.</Description>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/trip-ninja-inc/tn-sdk-csharp</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/trip-ninja-inc/tn-sdk-csharp</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>TripNinja;SDK;API;Travel</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageReleaseNotes>Initial release.</PackageReleaseNotes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="../../README.md" Pack="true" PackagePath="\" />
+    <None Include="../../LICENSE" Pack="true" PackagePath="\" />
+  </ItemGroup>
 
 </Project>
