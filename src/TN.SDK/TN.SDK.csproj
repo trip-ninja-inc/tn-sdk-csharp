@@ -10,12 +10,12 @@
 
   <PropertyGroup>
     <!-- NuGet metadata -->
-    <PackageId>TN.SDK</PackageId>
+    <PackageId>TripNinja.SDK</PackageId>
     <Version>0.0.1</Version>
     <Authors>Trip Ninja</Authors>
     <Company>Trip Ninja</Company>
-    <Product>TN.SDK</Product>
     <Description>The official Trip Ninja SDK for interacting with the Trip Ninja API.</Description>
+    <Copyright>© 2025 Trip Ninja. All rights reserved.</Copyright>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/trip-ninja-inc/tn-sdk-csharp</PackageProjectUrl>
     <RepositoryUrl>https://github.com/trip-ninja-inc/tn-sdk-csharp</RepositoryUrl>
