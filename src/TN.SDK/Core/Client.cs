@@ -9,7 +9,7 @@ namespace TN.SDK.Core;
 /// <summary>
 /// The entrypoint to the Trip Ninja SDK. Exposes useful functionality of the Trip Ninja API to the end user.
 /// </summary>
-public class TnApi()
+public class TnApi
 {
     private static readonly CompressionLevel ZLIB_DEFAULT_COMPRESSION_LEVEL = Constants.CompressionSettings.DEFAULT_COMPRESSION_LEVEL;
 
