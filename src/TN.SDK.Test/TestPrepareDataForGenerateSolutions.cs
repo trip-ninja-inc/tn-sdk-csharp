@@ -37,13 +37,12 @@ public sealed class TestPrepareDataForGenerateSolutions
         // Arrange
         var inputData = new { test = "value" };
         string jsonData = JsonSerializer.Serialize(inputData);
-        var client = new TnApi();
 
         // Compute Expected result
         string expectedData = CompressAndEncode(inputData);
 
         // Act
-        string encodedData = client.PrepareDataForGenerateSolutions(jsonData);
+        string encodedData = TnApi.PrepareDataForGenerateSolutions(jsonData);
         bool isDataEqual = expectedData.SequenceEqual(encodedData);
 
         // Assert
@@ -54,9 +53,8 @@ public sealed class TestPrepareDataForGenerateSolutions
     public void Test_Prepare_Data_For_Generate_Solutions_Invalid_Data_Raises_Exception()
     {
         // Arrange
-        var client = new TnApi();
         // Act & Assert
-        TnApiInvalidDataException exception = Assert.Throws<TnApiInvalidDataException>(() => client.PrepareDataForGenerateSolutions(""));
+        TnApiInvalidDataException exception = Assert.Throws<TnApiInvalidDataException>(() => TnApi.PrepareDataForGenerateSolutions(""));
 
         Assert.Multiple(() =>
         {

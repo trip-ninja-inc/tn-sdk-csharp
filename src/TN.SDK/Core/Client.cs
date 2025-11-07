@@ -19,7 +19,7 @@ public class TnApi()
     /// <param name="jsonData">A JSON-encoded string.</param>
     /// <returns>Compressed and base64-encoded byte array.</returns>
     /// <exception cref="TnApiInvalidDataException">Thrown if input is null or empty or not a valid JSON string.</exception>
-    public string PrepareDataForGenerateSolutions(string jsonData)
+    public static string PrepareDataForGenerateSolutions(string jsonData)
     {
         // Validate jsonData
         if (string.IsNullOrWhiteSpace(jsonData))
