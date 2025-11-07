@@ -9,10 +9,7 @@ namespace TN.SDK.Core;
 /// <summary>
 /// The entrypoint to the Trip Ninja SDK. Exposes useful functionality of the Trip Ninja API to the end user.
 /// </summary>
-/// <param name="accessToken">The token provided by the Admin Panel that is used to gain access to the API.</param>
-/// <param name="refreshToken"> The token provided by the Admin Panel that is used to refresh a user's access token.</param>
-/// <param name="isSandbox">Whether the client is connecting to the sandbox or the production environment.</param>
-public class TnApi(string accessToken = "", string refreshToken = "", bool isSandbox = false)
+public class TnApi()
 {
     private static readonly CompressionLevel ZLIB_DEFAULT_COMPRESSION_LEVEL = Constants.CompressionSettings.DEFAULT_COMPRESSION_LEVEL;
 
@@ -22,7 +19,7 @@ public class TnApi(string accessToken = "", string refreshToken = "", bool isSan
     /// <param name="jsonData">A JSON-encoded string.</param>
     /// <returns>Compressed and base64-encoded byte array.</returns>
     /// <exception cref="TnApiInvalidDataException">Thrown if input is null or empty or not a valid JSON string.</exception>
-    public static string PrepareDataForGenerateSolutions(string jsonData)
+    public string PrepareDataForGenerateSolutions(string jsonData)
     {
         // Validate jsonData
         if (string.IsNullOrWhiteSpace(jsonData))
