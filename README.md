@@ -29,8 +29,9 @@ NuGet\Install-Package TripNinja.SDK
 using TN.SDK.Core;
 
 string requestData = "{}"; // JSON string representing request data
+var client = new TnApi();
 
-string compressedData = TnApi.PrepareDataForGenerateSolutions(requestData);
+string compressedData = client.PrepareDataForGenerateSolutions(requestData);
 
 // The method compresses the request data and returns the compressed result
 ```
