@@ -9,29 +9,29 @@ It provides an intuitive interface to prepare and process API requests.
 
 ## Installation
 
-The Trip Ninja SDK is available via [NuGet](https://www.nuget.org/).
+The Trip Ninja SDK is available via [NuGet](https://www.nuget.org/packages/TripNinja.SDK).
 
 Install via the .NET CLI:
 
 ```bash
-dotnet add package TN.SDK
+dotnet add package TripNinja.SDK
 ```
 
 Or via the NuGet Package Manager Console:
 
 ```powershell
-Install-Package TN.SDK
+NuGet\Install-Package TripNinja.SDK
 ```
 
 ## Quick Example
 
 ```csharp
-using Tn.SDK;
+using TN.SDK.Core;
 
-var tnClient = new TnApi("access_key", "refresh_token");
 string requestData = "{}"; // JSON string representing request data
+var client = new TnApi();
 
-string compressedData = tnClient.PrepareDataForGenerateSolutions(requestData);
+string compressedData = client.PrepareDataForGenerateSolutions(requestData);
 
 // The method compresses the request data and returns the compressed result
 ```
