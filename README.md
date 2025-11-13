@@ -27,13 +27,82 @@ NuGet\Install-Package TripNinja.SDK
 
 ```csharp
 using TN.SDK.Core;
+using System.Text.Json;
 
-string requestData = "{}"; // JSON string representing request data
-var client = new TnApi();
+var tnClient = new TnApi();
 
-string compressedData = client.PrepareDataForGenerateSolutions(requestData);
+var requestData = new
+{
+    trip_id = "",
+    datasource_responses = new
+    {
+        _4b69b995e699534c1c644381b760c990795efff9 = new[]
+        {
+            new
+            {
+                pricing_solution_id = "e494c1f1d172380259a61b05990d61cbb68b35a9",
+                total_price = 392.22,
+                segment_source = "travelport",
+                is_private_fare = false,
+                refundable = false,
+                segments = new[]
+                {
+                    new[]
+                    {
+                        new
+                        {
+                            departure_time = "2025-11-15T16:40:00.000-04:00",
+                            departure_timestamp = 1763239200,
+                            arrival_time = "2025-11-15T17:35:00.000-05:00",
+                            arrival_timestamp = 1763246100,
+                            flight_number = "667",
+                            operating_carrier = "AC",
+                            transportation_type = "flight",
+                            fare_type = "PublicFare",
+                            cabin_class = "E",
+                            from_iata = "YHZ",
+                            to_iata = "YUL"
+                        },
+                        new
+                        {
+                            departure_time = "2025-11-15T18:20:00.000-05:00",
+                            departure_timestamp = 1763248800,
+                            arrival_time = "2025-11-15T20:50:00.000-08:00",
+                            arrival_timestamp = 1763268600,
+                            flight_number = "311",
+                            operating_carrier = "AC",
+                            transportation_type = "flight",
+                            fare_type = "PublicFare",
+                            cabin_class = "E",
+                            from_iata = "YUL",
+                            to_iata = "YVR"
+                        }
+                    }
+                },
+                baggage = (object?)null
+            }
+        }
+    }
+};
+
+// Serialise to JSON
+string json = JsonSerializer.Serialize(requestData);
+
+string compressedData = tnClient.PrepareDataForGenerateSolutions(json);
 
 // The method compresses the request data and returns the compressed result
+```
+
+### Response
+`compresssed data`
+```
+
+eJzFkU1v3CAQhv/LnNkIsI0NtypK1UMOVdVUalcrNGDsIuEPAY5Urfa/V+y2STdK02NvMMw8eufhCDn6VfseFACBHjOmZYvW6ejSuszJJVBH0LUR0kjZOCFlU9WWWVHXVcdMK6iVkrayccMwSFD7I6zRWz+POi1hy36ZL3hXy9qygfWs5VVHeSNRMEMbKWkvmDVGdKZqUAKBvGQMumAcqEryG84JJDdObs76kg8U5IiPLqxLzEDAp9L/iNnpAaMDNWBIjkB0wzb3aMJz6Rcogdrvj9C7FWPeotPZTwXLKW92jO1Y85kJVVNF6Q2ldEdrRWlxdDWQMk4rKNaKileSU0oAYwkSXuO1qmqeeOUE1+1/0mrBCm0Ifvye9bxNxkVQIEQLBJbVRcxFsi3z55d3t0VdxDkVJ3g2n3+sJcMFAgSKm9/Fj5sJ3r4vtghYNH7WNmBKoOCutMZl0h4zgoKvH76dv+Xp/nAPJ/IPeZ3i9OWyf5dXd93b8jhVzTOve1ue6MRr8irG/oO8h/treV8+welwIGBwHHF0oOYthNPhdPoJwVsdOA==
+```
+
+### Unsuccessful Response
+```
+error CS1503: Argument 1: cannot convert from 'any_type' to 'string'
 ```
 
 ## Development
