@@ -11,7 +11,7 @@
   <PropertyGroup>
     <!-- NuGet metadata -->
     <PackageId>TripNinja.SDK</PackageId>
-    <Version>0.0.1</Version>
+    <Version>0.0.2</Version>
     <Authors>Trip Ninja</Authors>
     <Company>Trip Ninja</Company>
     <Description>The official Trip Ninja SDK for interacting with the Trip Ninja API.</Description>
