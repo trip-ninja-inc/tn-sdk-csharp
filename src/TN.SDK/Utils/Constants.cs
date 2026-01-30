@@ -29,12 +29,15 @@ public static class Constants
         /// <summary>
         /// The default Production URL for TripNinja.
         /// </summary>
+#pragma warning disable S1075 // URIs should not be hardcoded, but are required for the SDK
         public const string PRODUCTION_API_URL = "https://api.tripninja.io";
 
         /// <summary>
         /// The default Sandbox URL for TripNinja.
         /// </summary>
         public const string SANDBOX_API_URL = "https://sandbox.tripninja.io";
+
+#pragma warning restore S1075 // URIs should not be hardcoded, but are required for the SDK
 
         /// <summary>
         /// The default sdk authentication endpoint.
