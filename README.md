@@ -29,7 +29,11 @@ NuGet\Install-Package TripNinja.SDK
 using TN.SDK.Core;
 using System.Text.Json;
 
-var tnClient = new TnApi();
+// Client ID and Client Secret can be retrieved from the Admin Panel
+var tnClient = new TnApi(
+    "client_id", // Can be set via TN_SDK_CLIENT_ID env variable
+    "client_secret" // Can be set via TN_SDK_CLIENT_SECRET env variable
+);
 
 var requestData = new
 {
