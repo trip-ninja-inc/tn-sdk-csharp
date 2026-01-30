@@ -4,10 +4,11 @@ using Moq;
 using Moq.Protected;
 
 using TN.SDK.Core;
-using TN.SDK.Utils;
 using TN.SDK.Exceptions;
+using TN.SDK.Utils;
 
 namespace TN.SDK.Test;
+
 [TestFixture]
 public class TestFetchNewCredentialsFromApiAsync : TnApiTestBase
 {
@@ -17,7 +18,7 @@ public class TestFetchNewCredentialsFromApiAsync : TnApiTestBase
         // Arrange
         string errorContent = /*lang=json,strict*/ "{\"error\": \"invalid_client_id\"}";
 
-        // Mock the Auth Endpoint (SdkAuthEndpoint) to return 400 Bad Request
+        // Mock the Auth Endpoint (SDK_AUTH_ENDPOINT) to return 400 Bad Request
         _ = _httpMock.Protected()
             .Setup<Task<HttpResponseMessage>>(
                 "SendAsync",

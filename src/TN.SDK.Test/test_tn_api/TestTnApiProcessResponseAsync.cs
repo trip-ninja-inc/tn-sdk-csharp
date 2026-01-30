@@ -40,6 +40,5 @@ public class TestProcessResponseAsync : TnApiTestBase
             await TnApi.ProcessResponseAsync(response));
 
         Assert.That(ex.Message, Does.Contain("failed"));
-        Assert.That(ex.Message, Does.Contain("failed"));
     }
 }

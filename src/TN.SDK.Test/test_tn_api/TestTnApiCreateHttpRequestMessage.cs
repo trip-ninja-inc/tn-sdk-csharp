@@ -18,7 +18,6 @@ public class TestCreateHttpRequestMessage : TnApiTestBase
         var body = new { id = 1 };
 
         // Act
-        // Calling the internal method directly
         HttpRequestMessage request = TnApi.CreateHttpRequestMessage(
             HttpMethod.Post,
             url,
@@ -28,18 +27,21 @@ public class TestCreateHttpRequestMessage : TnApiTestBase
         );
 
         // Assert
-        Assert.That(request.Method, Is.EqualTo(HttpMethod.Post));
-        Assert.That(request.RequestUri!.ToString(), Is.EqualTo(url));
+        Assert.Multiple(() =>
+        {
+            Assert.That(request.Method, Is.EqualTo(HttpMethod.Post));
+            Assert.That(request.RequestUri!.ToString(), Is.EqualTo(url));
 
-        // Check Auth
-        Assert.That(request.Headers.Authorization!.ToString(), Is.EqualTo("Token test-token"));
+            // Check Auth
+            Assert.That(request.Headers.Authorization!.ToString(), Is.EqualTo("Token test-token"));
 
-        // Check Custom Header
-        Assert.That(request.Headers.Contains("X-Custom"), Is.True);
+            // Check Custom Header
+            Assert.That(request.Headers.Contains("X-Custom"), Is.True);
 
-        // Check Body Content Type
-        Assert.That(request.Content, Is.InstanceOf<JsonContent>());
-        Assert.That(request.Content.Headers.ContentType!.MediaType, Is.EqualTo("application/json"));
+            // Check Body Content Type
+            Assert.That(request.Content, Is.InstanceOf<JsonContent>());
+            Assert.That(request.Content!.Headers.ContentType!.MediaType, Is.EqualTo("application/json"));
+        });
     }
 
     [Test]
@@ -51,12 +53,17 @@ public class TestCreateHttpRequestMessage : TnApiTestBase
 
         // Act
         HttpRequestMessage request = TnApi.CreateHttpRequestMessage(
-            HttpMethod.Put, "http://api.com", "tok", rawContent, null
+            HttpMethod.Put, "http://foobar.com", "tok", rawContent, null
         );
 
+        string text = await request.Content!.ReadAsStringAsync();
+
         // Assert
-        Assert.That(request.Content, Is.InstanceOf<StringContent>());
-        string text = await request.Content.ReadAsStringAsync();
-        Assert.That(text, Is.EqualTo("raw-data"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(request.Content, Is.InstanceOf<StringContent>());
+
+            Assert.That(text, Is.EqualTo("raw-data"));
+        });
     }
 }

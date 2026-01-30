@@ -11,7 +11,7 @@ public class TestIsDiskTokenNewer : TnApiTestBase
     public void IsDiskTokenNewer__DiskHasSameDataAsMemory__ReturnsFalse()
     {
         // Arrange
-        Dictionary<string, string> data = new() { { "prod", "123" } };
+        Dictionary<string, string> data = new() { { "prod_token", "123" } };
         File.WriteAllText(_tempCredFile, JsonSerializer.Serialize(data));
 
         using TnApi api = GetApiInstance(); // Loads "123" into _credentials
@@ -27,12 +27,12 @@ public class TestIsDiskTokenNewer : TnApiTestBase
     public void IsDiskTokenNewer__DiskHasDifferentValue__ReturnsTrue()
     {
         // Arrange
-        Dictionary<string, string> initial = new() { { "prod", "old" } };
+        Dictionary<string, string> initial = new() { { "prod_token", "old" } };
         File.WriteAllText(_tempCredFile, JsonSerializer.Serialize(initial));
 
         using TnApi api = GetApiInstance(); // Loads "old" into _credentials
 
-        Dictionary<string, string> newData = new() { { "prod", "new" } };
+        Dictionary<string, string> newData = new() { { "prod_token", "new" } };
 
         // Act
         bool result = api.IsDiskTokenNewer(newData);
@@ -45,15 +45,15 @@ public class TestIsDiskTokenNewer : TnApiTestBase
     public void IsDiskTokenNewer__DiskHasDifferentCount__ReturnsTrue()
     {
         // Arrange
-        Dictionary<string, string> initial = new() { { "prod", "123" } };
+        Dictionary<string, string> initial = new() { { "prod_token", "123" } };
         File.WriteAllText(_tempCredFile, JsonSerializer.Serialize(initial));
 
         using TnApi api = GetApiInstance();
 
         Dictionary<string, string> newData = new()
         {
-            { "prod", "123" },
-            { "sandbox", "456" }
+            { "prod_token", "123" },
+            { "sandbox_token", "456" }
         };
 
         // Act
