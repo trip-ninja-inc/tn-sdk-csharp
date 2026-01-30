@@ -15,11 +15,11 @@ namespace TN.SDK.Core;
 /// </summary>
 public class TnApi : IDisposable
 {
+    private bool _disposed;
     private readonly string _tnApiUrl;
     private readonly string _clientId;
     private readonly string _clientSecret;
     private readonly string _credentialFilePath;
-    private readonly TimeSpan _timeout;
     private readonly HttpClient _httpClient;
 
     // In-memory cache of credentials
@@ -45,7 +45,7 @@ public class TnApi : IDisposable
         string? clientId = null,
         string? clientSecret = null,
         string credentialFilePath = "credentials.json",
-        string tnApiUrl = Constants.APIUrls.PRODUCTION_API_URL,
+        string tnApiUrl = Constants.ApiUrls.PRODUCTION_API_URL,
         int timeoutSeconds = 30,
         HttpMessageHandler? handler = null)
     {
@@ -55,7 +55,7 @@ public class TnApi : IDisposable
 
         // Resolve full path
         _credentialFilePath = Path.GetFullPath(credentialFilePath);
-        _timeout = TimeSpan.FromSeconds(timeoutSeconds);
+
 
         // Validate Client ID & Secret
         if (string.IsNullOrEmpty(_clientId) || string.IsNullOrEmpty(_clientSecret))
@@ -82,7 +82,7 @@ public class TnApi : IDisposable
             ? new HttpClient(handler)
             : new HttpClient
             {
-                Timeout = _timeout
+                Timeout = TimeSpan.FromSeconds(timeoutSeconds)
             };
 
         // Initial load
@@ -109,90 +109,133 @@ public class TnApi : IDisposable
         ArgumentNullException.ThrowIfNull(method);
         ArgumentException.ThrowIfNullOrEmpty(endpoint);
 
+        // Ensure we have credentials loaded at all
+        await EnsureCredentialsLoadedAsync();
+
+        string url = $"{_tnApiUrl}{endpoint}";
+        string tokenKey = tokenType.ToJsonValue();
+        string currentToken = _credentials.GetValueOrDefault(tokenKey, "");
+
+        // First Attempt
+        HttpResponseMessage response = await ExecuteRequestAsync(method, url, currentToken, body, headers);
+
+        // Handle 401 (Unauthorized)
+        if (response.StatusCode == HttpStatusCode.Unauthorized)
+        {
+            response.Dispose(); // Clean up the failed response
+
+            currentToken = await RefreshTokenOn401Async(tokenKey);
+
+            // Retry Request with new token
+            response = await ExecuteRequestAsync(method, url, currentToken, body, headers);
+        }
+
+        // Final Validation & Parsing
+        return await ProcessResponseAsync(response);
+    }
+
+    private async Task<HttpResponseMessage> ExecuteRequestAsync(
+        HttpMethod method,
+        string url,
+        string token,
+        object? body,
+        Dictionary<string, string>? headers)
+    {
+        // We pass a Func<HttpRequestMessage> because SendWithNetworkRetriesAsync 
+        // needs to create a NEW message object for every retry attempt.
+        return await SendWithNetworkRetriesAsync(() =>
+            CreateHttpRequestMessage(method, url, token, body, headers)
+        );
+    }
+
+    private HttpRequestMessage CreateHttpRequestMessage(
+        HttpMethod method,
+        string url,
+        string token,
+        object? body,
+        Dictionary<string, string>? headers)
+    {
+        HttpRequestMessage request = new(method, url);
+        _ = request.Headers.TryAddWithoutValidation("Authorization", $"Token {token}");
+
+        if (headers != null)
+        {
+            foreach (KeyValuePair<string, string> kvp in headers)
+            {
+                _ = request.Headers.TryAddWithoutValidation(kvp.Key, kvp.Value);
+            }
+        }
+
+        if (body != null)
+        {
+            request.Content = body is HttpContent content ? content : JsonContent.Create(body);
+        }
+
+        return request;
+    }
+
+    private async Task<string> RefreshTokenOn401Async(string tokenKey)
+    {
+        // Check disk to get latest credentials
+        Dictionary<string, string> diskTokenData = LoadTokenFromDisk();
+
+        if (IsDiskTokenNewer(diskTokenData))
+        {
+            _credentials = diskTokenData;
+        }
+        else
+        {
+            // If disk is also stale, call the API
+            _credentials = await FetchNewCredentialsFromApiAsync();
+        }
+
+        return _credentials.GetValueOrDefault(tokenKey, "");
+    }
+
+    private async Task EnsureCredentialsLoadedAsync()
+    {
         if (_credentials == null || _credentials.Count == 0)
         {
             _credentials = await FetchNewCredentialsFromApiAsync();
         }
+    }
 
-        string url = $"{_tnApiUrl}{endpoint}";
-
-        // Helper to prepare the request message
-        HttpRequestMessage CreateRequest(string token)
+    private bool IsDiskTokenNewer(Dictionary<string, string> diskData)
+    {
+        if (diskData.Count == 0)
         {
-            HttpRequestMessage request = new(method, url);
-
-            // Add Authorization
-            _ = request.Headers.TryAddWithoutValidation("Authorization", $"Token {token}");
-
-            // Add Custom Headers
-            if (headers != null)
-            {
-                foreach (KeyValuePair<string, string> kvp in headers)
-                {
-                    _ = request.Headers.TryAddWithoutValidation(kvp.Key, kvp.Value);
-                }
-            }
-
-            // Add Body
-            if (body != null)
-            {
-                // If body is already string/content, use it, otherwise JSON serialize
-                request.Content = body is HttpContent content ? content : JsonContent.Create(body);
-            }
-
-            return request;
+            return false;
         }
 
-        // Get the correct dictionary key (Convert it to it's JSON value)
-        string tokenKey = tokenType.ToJsonValue();
-        if (!_credentials.ContainsKey(tokenKey))
+        // If counts differ, it's definitely different (and presumably newer/valid)
+        if (diskData.Count != _credentials.Count)
         {
-            // Fallback or force refresh if specific key missing
-            _credentials = await FetchNewCredentialsFromApiAsync();
+            return true;
         }
 
-        string currentToken = _credentials.GetValueOrDefault(tokenKey, "");
-
-        // Execute with Network Retry Logic (for 500s, etc)
-        HttpResponseMessage response = await SendWithNetworkRetriesAsync(() => CreateRequest(currentToken));
-
-        // Handle 401 (Token Expired)
-        if (response.StatusCode == HttpStatusCode.Unauthorized)
+        // Check if values differ
+        foreach (KeyValuePair<string, string> kvp in diskData)
         {
-            response.Dispose(); // Clean up failed response
-
-            // Check disk to see if another process updated it
-            Dictionary<string, string> diskToken = LoadTokenFromDisk();
-
-            // Simple dictionary equality check (count and content)
-            bool isDiskDifferent = diskToken.Count != _credentials.Count;
-            if (!isDiskDifferent)
+            if (!_credentials.TryGetValue(kvp.Key, out string? val) || val != kvp.Value)
             {
-                foreach (KeyValuePair<string, string> kvp in diskToken)
-                {
-                    if (!_credentials.TryGetValue(kvp.Key, out string? val) || val != kvp.Value)
-                    {
-                        isDiskDifferent = true;
-                        break;
-                    }
-                }
+                return true;
             }
-
-            _credentials = diskToken.Count > 0 && isDiskDifferent ? diskToken : await FetchNewCredentialsFromApiAsync();
-
-            // Retry with new token
-            currentToken = _credentials.GetValueOrDefault(tokenKey, "");
-            response = await SendWithNetworkRetriesAsync(() => CreateRequest(currentToken));
         }
+        return false;
+    }
 
-        // Final check
+    private async Task<JsonElement> ProcessResponseAsync(HttpResponseMessage response)
+    {
         if (!response.IsSuccessStatusCode)
         {
             string errorContent = await response.Content.ReadAsStringAsync();
+            response.Dispose();
             throw new HttpRequestException($"Request failed: {response.StatusCode}. {errorContent}");
         }
 
         string jsonString = await response.Content.ReadAsStringAsync();
+        response.Dispose();
+
         return JsonSerializer.Deserialize<JsonElement>(jsonString);
     }
 
@@ -239,7 +282,7 @@ public class TnApi : IDisposable
     /// <exception cref="TnAuthenticationFailedException"></exception>
     internal async Task<Dictionary<string, string>> FetchNewCredentialsFromApiAsync()
     {
-        string url = $"{_tnApiUrl}{Constants.APIUrls.SDK_AUTH_ENDPOINT}";
+        string url = $"{_tnApiUrl}{Constants.ApiUrls.SDK_AUTH_ENDPOINT}";
 
         using HttpRequestMessage request = new(HttpMethod.Post, url);
         request.Headers.Add("X-Client-ID", _clientId);
@@ -307,7 +350,11 @@ public class TnApi : IDisposable
             // Skip saving if permissions fail, keep in memory
             if (File.Exists(tempPath))
             {
-                try { File.Delete(tempPath); } catch { }
+                try { File.Delete(tempPath); }
+                catch
+                {
+                    // If we can't delete it, then just continue on
+                }
             }
         }
     }
@@ -315,8 +362,24 @@ public class TnApi : IDisposable
     /// <inheritdoc/>
     public void Dispose()
     {
-        _httpClient?.Dispose();
+        Dispose(true);
         GC.SuppressFinalize(this);
+    }
+
+    /// <inheritdoc/>
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        if (disposing)
+        {
+            _httpClient?.Dispose();
+        }
+
+        _disposed = true;
     }
 
     /// <summary>

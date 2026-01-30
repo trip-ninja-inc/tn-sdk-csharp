@@ -24,7 +24,7 @@ public static class Constants
     /// <summary>
     /// Constants relating to API Networking
     /// </summary>
-    public static class APIUrls
+    public static class ApiUrls
     {
         /// <summary>
         /// The default Production URL for TripNinja.

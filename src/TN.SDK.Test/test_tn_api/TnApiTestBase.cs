@@ -46,7 +46,7 @@ public abstract class TnApiTestBase
 
     // -- Helpers --
 
-    protected TnApi GetApiInstance(string url = Constants.APIUrls.PRODUCTION_API_URL, int timeout = 5)
+    protected TnApi GetApiInstance(string url = Constants.ApiUrls.PRODUCTION_API_URL, int timeout = 5)
     {
         return new TnApi(
             ValidClientId,
@@ -69,7 +69,7 @@ public abstract class TnApiTestBase
         _ = _httpMock.Protected()
             .Setup<Task<HttpResponseMessage>>(
                 "SendAsync",
-                ItExpr.Is<HttpRequestMessage>(req => req.RequestUri!.ToString().Contains(Constants.APIUrls.SDK_AUTH_ENDPOINT)),
+                ItExpr.Is<HttpRequestMessage>(req => req.RequestUri!.ToString().Contains(Constants.ApiUrls.SDK_AUTH_ENDPOINT)),
                 ItExpr.IsAny<CancellationToken>()
             )
             .ReturnsAsync(new HttpResponseMessage
