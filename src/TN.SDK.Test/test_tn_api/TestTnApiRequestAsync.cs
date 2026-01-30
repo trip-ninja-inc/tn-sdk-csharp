@@ -2,12 +2,12 @@
 using System.Net;
 using System.Text.Json;
 
+using Moq;
 using Moq.Protected;
 
-using TN.SDK.Test;
-using Moq;
 using TN.SDK.Core;
 using TN.SDK.Enums;
+using TN.SDK.Test;
 
 namespace TN.SDK.Tests;
 
@@ -202,9 +202,9 @@ public class TestRequestAsync : TnApiTestBase
         // Create mock credentials file
         Dictionary<string, string> tokenData = new()
         {
-        { "prod_token", prodToken },
-        { "data_stream_token", dataStreamToken }
-    };
+            { "prod_token", prodToken },
+            { "data_stream_token", dataStreamToken }
+        };
 
         // Write these to the temp file that the API will read
         File.WriteAllText(_tempCredFile, JsonSerializer.Serialize(tokenData));

@@ -15,8 +15,8 @@ namespace TN.SDK.Test;
 /// </summary>
 public abstract class TnApiTestBase
 {
-    protected string _tempCredFile;
-    protected Mock<HttpMessageHandler> _httpMock;
+    protected string _tempCredFile = null!;
+    protected Mock<HttpMessageHandler> _httpMock = null!;
     protected const string ValidClientId = "test-id";
     protected const string ValidClientSecret = "test-secret";
 
@@ -93,34 +93,6 @@ public abstract class TnApiTestBase
             {
                 StatusCode = status,
                 Content = new StringContent(jsonResponse)
-            });
-    }
-
-    protected void SetupSequenceForRefeshLogic(string endpoint, string oldToken, string newToken)
-    {
-        // We use SetupSequence to simulate state change over time
-        _ = _httpMock.Protected()
-            .SetupSequence<Task<HttpResponseMessage>>(
-                "SendAsync",
-                ItExpr.IsAny<HttpRequestMessage>(), // We match broadly here to handle the sequence of [Req -> Auth -> Req]
-                ItExpr.IsAny<CancellationToken>()
-            )
-            // 1. Initial Request (Fails 401)
-            .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.Unauthorized))
-
-            // 2. Auth Request (Succeeds)
-            .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK)
-            {
-                Content = new StringContent(JsonSerializer.Serialize(new Dictionary<string, string>
-                {
-                        { "prod_token", newToken }
-                }))
-            })
-
-            // 3. Retry Request (Succeeds)
-            .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK)
-            {
-                Content = new StringContent(/*lang=json,strict*/ "{\"data\":\"final-success\"}")
             });
     }
 

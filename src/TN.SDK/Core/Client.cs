@@ -134,7 +134,7 @@ public class TnApi : IDisposable
         return await ProcessResponseAsync(response);
     }
 
-    private async Task<HttpResponseMessage> ExecuteRequestAsync(
+    internal async Task<HttpResponseMessage> ExecuteRequestAsync(
         HttpMethod method,
         string url,
         string token,
@@ -148,7 +148,7 @@ public class TnApi : IDisposable
         );
     }
 
-    private HttpRequestMessage CreateHttpRequestMessage(
+    internal static HttpRequestMessage CreateHttpRequestMessage(
         HttpMethod method,
         string url,
         string token,
@@ -174,7 +174,7 @@ public class TnApi : IDisposable
         return request;
     }
 
-    private async Task<string> RefreshTokenOn401Async(string tokenKey)
+    internal async Task<string> RefreshTokenOn401Async(string tokenKey)
     {
         // Check disk to get latest credentials
         Dictionary<string, string> diskTokenData = LoadTokenFromDisk();
@@ -192,7 +192,7 @@ public class TnApi : IDisposable
         return _credentials.GetValueOrDefault(tokenKey, "");
     }
 
-    private async Task EnsureCredentialsLoadedAsync()
+    internal async Task EnsureCredentialsLoadedAsync()
     {
         if (_credentials == null || _credentials.Count == 0)
         {
@@ -200,7 +200,7 @@ public class TnApi : IDisposable
         }
     }
 
-    private bool IsDiskTokenNewer(Dictionary<string, string> diskData)
+    internal bool IsDiskTokenNewer(Dictionary<string, string> diskData)
     {
         if (diskData.Count == 0)
         {
@@ -224,7 +224,7 @@ public class TnApi : IDisposable
         return false;
     }
 
-    private async Task<JsonElement> ProcessResponseAsync(HttpResponseMessage response)
+    internal static async Task<JsonElement> ProcessResponseAsync(HttpResponseMessage response)
     {
         if (!response.IsSuccessStatusCode)
         {
