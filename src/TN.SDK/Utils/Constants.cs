@@ -20,4 +20,25 @@ public static class Constants
         /// </summary>
         public const CompressionLevel DEFAULT_COMPRESSION_LEVEL = CompressionLevel.Optimal;
     }
+
+    /// <summary>
+    /// Constants relating to API Networking
+    /// </summary>
+    public static class APIUrls
+    {
+        /// <summary>
+        /// The default Production URL for TripNinja.
+        /// </summary>
+        public const string PRODUCTION_API_URL = "https://api.tripninja.io";
+
+        /// <summary>
+        /// The default Sandbox URL for TripNinja.
+        /// </summary>
+        public const string SANDBOX_API_URL = "https://sandbox.tripninja.io";
+
+        /// <summary>
+        /// The default sdk authentication endpoint.
+        /// </summary>
+        public const string SDK_AUTH_ENDPOINT = "/sdk/auth/";
+    }
 }
