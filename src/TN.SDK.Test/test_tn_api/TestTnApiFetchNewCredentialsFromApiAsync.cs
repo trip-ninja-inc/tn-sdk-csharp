@@ -23,7 +23,7 @@ public class TestFetchNewCredentialsFromApiAsync : TnApiTestBase
             .Setup<Task<HttpResponseMessage>>(
                 "SendAsync",
                 ItExpr.Is<HttpRequestMessage>(req =>
-                    req.RequestUri!.ToString().Contains(Constants.ApiUrls.SDK_AUTH_ENDPOINT)),
+                    req.RequestUri!.ToString().Contains("http://api.tripninja.io")),
                 ItExpr.IsAny<CancellationToken>()
             )
             .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.BadRequest)

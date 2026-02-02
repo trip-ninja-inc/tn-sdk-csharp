@@ -1,3 +1,7 @@
+
+
+using Microsoft.Extensions.Configuration;
+
 using TN.SDK.Core;
 
 namespace TN.SDK.Test;
@@ -6,45 +10,85 @@ namespace TN.SDK.Test;
 [TestFixture]
 public sealed class TestConstructor : TnApiTestBase
 {
-
-
-    [TestCase("id", "secret", "http://api.com", true)]
-    [TestCase("", "secret", "http://api.com", false, Description = "Missing ID")]
-    [TestCase("id", "", "http://api.com", false, Description = "Missing Secret")]
-    [TestCase("id", "secret", "ftp://invalid-scheme.com", false, Description = "Invalid Scheme")]
-    public void Constructor__VariousInputScenarios__ValidatesArgumentsCorrectly(string id, string secret, string url, bool isValid)
+    [Test]
+    public void Constructor__ValidSettings__InitializesSuccessfully()
     {
-        if (isValid)
+        // Arrange
+        TnSdkSettings settings = new()
         {
-            Assert.DoesNotThrow(() => new TnApi(id, secret, _tempCredFile, url));
-        }
-        else
+            ClientId = "valid-id",
+            ClientSecret = "valid-secret",
+            CredentialFilePath = _tempCredFile,
+            ApiUrl = "https://api.tripninja.io"
+        };
+
+        // Act & Assert
+        Assert.DoesNotThrow(() => new TnApi(settings));
+    }
+
+    [TestCase("", "secret", Description = "Empty ClientId")]
+    [TestCase("id", "", Description = "Empty ClientSecret")]
+    public void Constructor__MissingAuthFieldsInSettings__ThrowsArgumentException(string id, string secret)
+    {
+        // Arrange
+        TnSdkSettings settings = new()
         {
-            _ = Assert.Throws<ArgumentException>(() => new TnApi(id, secret, _tempCredFile, url));
-        }
+            ClientId = id,
+            ClientSecret = secret,
+            CredentialFilePath = _tempCredFile
+        };
+
+        // Act & Assert
+        ArgumentException? ex = Assert.Throws<ArgumentException>(() => new TnApi(settings));
+        Assert.That(ex.Message, Does.Contain("Client ID and Client Secret are required"));
+    }
+
+    [TestCase("ftp://invalid-scheme.com")]
+    [TestCase("not-a-url")]
+    public void Constructor__InvalidApiUrlInSettings__ThrowsArgumentException(string invalidUrl)
+    {
+        // Arrange
+        TnSdkSettings settings = new()
+        {
+            ClientId = "id",
+            ClientSecret = "secret",
+            CredentialFilePath = _tempCredFile,
+            ApiUrl = invalidUrl
+        };
+
+        // Act & Assert
+        ArgumentException? ex = Assert.Throws<ArgumentException>(() => new TnApi(settings));
+        Assert.That(ex.Message, Does.Contain("Invalid API URL"));
     }
 
     [Test]
-    public void Constructor__MissingClientIDAndScret__UsesEnvVars()
-    {
-        Environment.SetEnvironmentVariable("TN_SDK_CLIENT_ID", "env-id");
-        Environment.SetEnvironmentVariable("TN_SDK_CLIENT_SECRET", "env-secret");
-
-        using TnApi api = new(credentialFilePath: _tempCredFile);
-
-        // We can't easily inspect private fields, but we ensure it didn't throw
-        Assert.Pass();
-    }
-
-    [Test]
-    public void Constructor__NonExistentDirectory__ThrowsDirectoryNotFoundException()
+    public void Constructor__NonExistentDirectoryInSettings__ThrowsDirectoryNotFoundException()
     {
         // Arrange
         string nonExistentFolder = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-        string badPath = Path.Combine(nonExistentFolder, "credentials.json");
+        string badPath = Path.Combine(nonExistentFolder, "creds.json");
+
+        TnSdkSettings settings = new()
+        {
+            ClientId = "id",
+            ClientSecret = "secret",
+            CredentialFilePath = badPath
+        };
 
         // Act & Assert
-        _ = Assert.Throws<DirectoryNotFoundException>(() =>
-            new TnApi(ValidClientId, ValidClientSecret, badPath));
+        _ = Assert.Throws<DirectoryNotFoundException>(() => new TnApi(settings));
+    }
+
+    [Test]
+    public void Constructor__WithEmptyIConfiguration__ThrowsArgumentException()
+    {
+        // Arrange
+        // Empty config (simulating missing appsettings section)
+        IConfiguration config = new ConfigurationBuilder().Build();
+
+        // Act & Assert
+        // Should throw because ClientId/Secret will be null after binding
+        ArgumentException ex = Assert.Throws<ArgumentException>(() => new TnApi(config));
+        Assert.That(ex.Message, Does.Contain("Client ID and Client Secret are required"));
     }
 }

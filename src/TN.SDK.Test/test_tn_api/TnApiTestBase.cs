@@ -5,7 +5,6 @@ using Moq;
 using Moq.Protected;
 
 using TN.SDK.Core;
-using TN.SDK.Utils;
 
 
 namespace TN.SDK.Test;
@@ -46,14 +45,18 @@ public abstract class TnApiTestBase
 
     // -- Helpers --
 
-    protected TnApi GetApiInstance(string url = Constants.ApiUrls.PRODUCTION_API_URL, int timeout = 5)
+    protected TnApi GetApiInstance(string? urlOverride = null, int timeout = 5)
     {
+        TnSdkSettings settings = new()
+        {
+            ClientId = ValidClientId,
+            ClientSecret = ValidClientSecret,
+            CredentialFilePath = _tempCredFile,
+            ApiUrl = urlOverride ?? "http://api.tripninja.io",
+            TimeoutSeconds = timeout
+        };
         return new TnApi(
-            ValidClientId,
-            ValidClientSecret,
-            _tempCredFile,
-            url,
-            timeout,
+            settings,
             _httpMock.Object
         );
     }
@@ -69,7 +72,7 @@ public abstract class TnApiTestBase
         _ = _httpMock.Protected()
             .Setup<Task<HttpResponseMessage>>(
                 "SendAsync",
-                ItExpr.Is<HttpRequestMessage>(req => req.RequestUri!.ToString().Contains(Constants.ApiUrls.SDK_AUTH_ENDPOINT)),
+                ItExpr.Is<HttpRequestMessage>(req => req.RequestUri!.ToString().Contains("http://api.tripninja.io")),
                 ItExpr.IsAny<CancellationToken>()
             )
             .ReturnsAsync(new HttpResponseMessage

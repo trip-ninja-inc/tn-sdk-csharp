@@ -4,6 +4,8 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 
+using Microsoft.Extensions.Configuration;
+
 using TN.SDK.Enums;
 using TN.SDK.Exceptions;
 using TN.SDK.Utils;
@@ -15,11 +17,8 @@ namespace TN.SDK.Core;
 /// </summary>
 public class TnApi : IDisposable
 {
+    private readonly TnSdkSettings _settings;
     private bool _disposed;
-    private readonly string _tnApiUrl;
-    private readonly string _clientId;
-    private readonly string _clientSecret;
-    private readonly string _credentialFilePath;
     private readonly HttpClient _httpClient;
 
     // In-memory cache of credentials
@@ -32,46 +31,45 @@ public class TnApi : IDisposable
         WriteIndented = true
     };
 
+    // Handles trailing slash normalization dynamically
+    private string ApiUrl => _settings.ApiUrl.TrimEnd('/');
+
+    // Handles path resolution dynamically
+    private string CredentialFilePath => Path.GetFullPath(_settings.CredentialFilePath);
+
+    // Safe accessors (Validated in constructor, so we know they aren't empty)
+    private string ClientId => _settings.ClientId ?? string.Empty;
+    private string ClientSecret => _settings.ClientSecret ?? string.Empty;
+
     /// <summary>
     /// Initializes the SDK client.
     /// </summary>
-    /// <param name="clientId">API Client ID (defaults to env TN_SDK_CLIENT_ID)</param>
-    /// <param name="clientSecret">API Client Secret (defaults to env TN_SDK_CLIENT_SECRET)</param>
-    /// <param name="credentialFilePath">Credentials file path (defaults to credentials.json)</param>
-    /// <param name="tnApiUrl">Base URL for the API</param>
-    /// <param name="timeoutSeconds">Default timeout for network requests in seconds</param>
-    /// <param name="handler">Optional HttpMessage Handler</param>
-    public TnApi(
-        string? clientId = null,
-        string? clientSecret = null,
-        string credentialFilePath = "credentials.json",
-        string tnApiUrl = Constants.ApiUrls.PRODUCTION_API_URL,
-        int timeoutSeconds = 30,
-        HttpMessageHandler? handler = null)
+    /// <param name="settings"></param>
+    /// <param name="handler"></param>
+    /// <exception cref="ArgumentNullException"></exception>
+    /// <exception cref="ArgumentException"></exception>
+    /// <exception cref="DirectoryNotFoundException"></exception>
+    public TnApi(TnSdkSettings settings, HttpMessageHandler? handler = null)
     {
-        _tnApiUrl = tnApiUrl.TrimEnd('/');
-        _clientId = clientId ?? Environment.GetEnvironmentVariable("TN_SDK_CLIENT_ID") ?? "";
-        _clientSecret = clientSecret ?? Environment.GetEnvironmentVariable("TN_SDK_CLIENT_SECRET") ?? "";
-
-        // Resolve full path
-        _credentialFilePath = Path.GetFullPath(credentialFilePath);
-
+        _settings = settings ?? throw new ArgumentNullException(nameof(settings));
 
         // Validate Client ID & Secret
-        if (string.IsNullOrEmpty(_clientId) || string.IsNullOrEmpty(_clientSecret))
+        if (string.IsNullOrEmpty(_settings.ClientId) || string.IsNullOrEmpty(_settings.ClientSecret))
         {
             throw new ArgumentException("Client ID and Client Secret are required.");
         }
 
+        TimeSpan timeoutSeconds = TimeSpan.FromSeconds(_settings.TimeoutSeconds);
+
         // Validate The file path exists
-        string? parentDir = Path.GetDirectoryName(_credentialFilePath);
+        string? parentDir = Path.GetDirectoryName(_settings.CredentialFilePath);
         if (!string.IsNullOrEmpty(parentDir) && !Directory.Exists(parentDir))
         {
             throw new DirectoryNotFoundException($"Credential file Directory: {parentDir} not found.");
         }
 
         // Validate the URL
-        if (!Uri.TryCreate(_tnApiUrl, UriKind.Absolute, out Uri? uriResult)
+        if (!Uri.TryCreate(_settings.ApiUrl, UriKind.Absolute, out Uri? uriResult)
             || (uriResult.Scheme != Uri.UriSchemeHttp && uriResult.Scheme != Uri.UriSchemeHttps))
         {
             throw new ArgumentException("Invalid API URL.");
@@ -82,11 +80,34 @@ public class TnApi : IDisposable
             ? new HttpClient(handler)
             : new HttpClient
             {
-                Timeout = TimeSpan.FromSeconds(timeoutSeconds)
+                Timeout = timeoutSeconds
             };
-
-        // Initial load
         _credentials = LoadTokenFromDisk();
+    }
+
+    /// <summary>
+    /// Initializes the SDK client.
+    /// </summary>
+    /// <param name="configuration">IConfiguration data</param>
+    /// <param name="section">The Section inside IConfiguration to parse</param>
+    /// <param name="handler">Optional HttpMessageHandler</param>
+    public TnApi(IConfiguration configuration, string section = "TripNinja", HttpMessageHandler? handler = null) :
+    this(BindSettings(configuration, section), handler)
+    {
+
+    }
+
+    /// <summary>
+    /// Private Method for binding the settings from the configuration
+    /// </summary>
+    /// <param name="configuration">The Configuration object</param>
+    /// <param name="section">The section to Get (defaults to TripNinja)</param>
+    /// <returns></returns>
+    private static TnSdkSettings BindSettings(IConfiguration configuration, string section = "TripNinja")
+    {
+        TnSdkSettings settings = new();
+        configuration.GetSection(section).Bind(settings);
+        return settings;
     }
 
     /// <summary>
@@ -112,7 +133,7 @@ public class TnApi : IDisposable
         // Ensure we have credentials loaded at all
         await EnsureCredentialsLoadedAsync();
 
-        string url = $"{_tnApiUrl}{endpoint}";
+        string url = $"{ApiUrl}{endpoint}";
         string tokenKey = tokenType.ToJsonValue();
         string currentToken = _credentials.GetValueOrDefault(tokenKey, "");
 
@@ -282,11 +303,11 @@ public class TnApi : IDisposable
     /// <exception cref="TnAuthenticationFailedException"></exception>
     internal async Task<Dictionary<string, string>> FetchNewCredentialsFromApiAsync()
     {
-        string url = $"{_tnApiUrl}{Constants.ApiUrls.SDK_AUTH_ENDPOINT}";
+        string url = $"{ApiUrl}{_settings.AuthEndpoint}";
 
         using HttpRequestMessage request = new(HttpMethod.Post, url);
-        request.Headers.Add("X-Client-ID", _clientId);
-        request.Headers.Add("X-Client-Secret", _clientSecret);
+        request.Headers.Add("X-Client-ID", ClientId);
+        request.Headers.Add("X-Client-Secret", ClientSecret);
 
         try
         {
@@ -316,14 +337,14 @@ public class TnApi : IDisposable
 
     private Dictionary<string, string> LoadTokenFromDisk()
     {
-        if (!File.Exists(_credentialFilePath))
+        if (!File.Exists(CredentialFilePath))
         {
             return [];
         }
 
         try
         {
-            string text = File.ReadAllText(_credentialFilePath, Encoding.UTF8);
+            string text = File.ReadAllText(CredentialFilePath, Encoding.UTF8);
             Dictionary<string, string> data = JsonSerializer.Deserialize<Dictionary<string, string>>(text, JsonOptions) ?? [];
             return data;
         }
@@ -336,14 +357,14 @@ public class TnApi : IDisposable
 
     private void SaveCredentialsToDisk(Dictionary<string, string> tokenData)
     {
-        string tempPath = _credentialFilePath + ".tmp";
+        string tempPath = CredentialFilePath + ".tmp";
         try
         {
             string json = JsonSerializer.Serialize(tokenData, JsonOptions);
             File.WriteAllText(tempPath, json, Encoding.UTF8);
 
             // Atomic move/replace
-            File.Move(tempPath, _credentialFilePath, overwrite: true);
+            File.Move(tempPath, CredentialFilePath, overwrite: true);
         }
         catch (Exception)
         {
