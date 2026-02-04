@@ -5,7 +5,6 @@ using Moq.Protected;
 
 using TN.SDK.Core;
 using TN.SDK.Exceptions;
-using TN.SDK.Utils;
 
 namespace TN.SDK.Test;
 
