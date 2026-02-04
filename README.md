@@ -137,9 +137,9 @@ Add a `TripNinja` section to your project's configuration file.
 
 The SDK supports standard .NET Core environment variable nesting (using double underscores `__`)
 
-| Setting | Environment Variable (Standard)
-| --- | --- | --- |
-| **Client ID** | `TripNinja__ClientId`
+| Setting | Environment Variable (Standard) |
+| --- | --- |
+| **Client ID** | `TripNinja__ClientId` |
 | **Client Secret** | `TripNinja__ClientSecret` |
 | **API URL** | `TripNinja__ApiUrl` |
 | **Timeout** | `TripNinja__TimeoutSeconds` |
