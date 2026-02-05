@@ -11,18 +11,22 @@
   <PropertyGroup>
     <!-- NuGet metadata -->
     <PackageId>TripNinja.SDK</PackageId>
-    <Version>0.0.1</Version>
+    <Version>0.0.3</Version>
     <Authors>Trip Ninja</Authors>
     <Company>Trip Ninja</Company>
     <Description>The official Trip Ninja SDK for interacting with the Trip Ninja API.</Description>
-    <Copyright>© 2025 Trip Ninja. All rights reserved.</Copyright>
+    <Copyright>© 2026 Trip Ninja. All rights reserved.</Copyright>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/trip-ninja-inc/tn-sdk-csharp</PackageProjectUrl>
     <RepositoryUrl>https://github.com/trip-ninja-inc/tn-sdk-csharp</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>TripNinja;SDK;API;Travel</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageReleaseNotes>Initial release.</PackageReleaseNotes>
+    <PackageReleaseNotes>
+    Version 0.0.3 Features &amp; Improvements:
+      - **Configuration Integration:** Added native support for `IConfiguration`. You can now initialize `TnApi` directly using `appsettings.json` or standard .NET configuration providers.
+      - **Environment Variables:** Enhanced support for Environment Variables using standard .NET naming conventions (e.g., `TripNinja__ClientId`).
+    </PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
