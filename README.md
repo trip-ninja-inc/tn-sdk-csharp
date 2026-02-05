@@ -29,7 +29,14 @@ NuGet\Install-Package TripNinja.SDK
 using TN.SDK.Core;
 using System.Text.Json;
 
-var tnClient = new TnApi();
+var settings = new TnSdkSettings
+{
+    ClientId = "my-id",
+    ClientSecret = "my-secret",
+};
+
+using var api = new TnApi(settings);
+
 
 var requestData = new
 {
@@ -104,6 +111,56 @@ eJzFkU1v3CAQhv/LnNkIsI0NtypK1UMOVdVUalcrNGDsIuEPAY5Urfa/V+y2STdK02NvMMw8eufhCDn6
 ```
 error CS1503: Argument 1: cannot convert from 'any_type' to 'string'
 ```
+
+## Configuration
+
+The SDK follows standard .NET configuration patterns. You can configure the client using `appsettings.json`, Environment Variables, or by passing a settings object directly.
+
+### 1. Using `appsettings.json` (Recommended for [ASP.NET](http://asp.net/) Core)
+
+Add a `TripNinja` section to your project's configuration file.
+
+```json
+{
+  "TripNinja": {
+    "ClientId": "YOUR_CLIENT_ID",
+    "ClientSecret": "YOUR_CLIENT_SECRET",
+    "ApiUrl": "https://api.tripninja.io", // For Sandbox -> https://sandbox.tripninja.io
+    "TimeoutSeconds": 30,
+    "CredentialFilePath": "credentials.json"
+  }
+}
+
+```
+
+### 2. Environment Variables
+
+The SDK supports standard .NET Core environment variable nesting (using double underscores `__`)
+
+| Setting | Environment Variable (Standard) |
+| --- | --- |
+| **Client ID** | `TripNinja__ClientId` |
+| **Client Secret** | `TripNinja__ClientSecret` |
+| **API URL** | `TripNinja__ApiUrl` |
+| **Timeout** | `TripNinja__TimeoutSeconds` |
+| **Credential Path** | `TripNinja__CredentialFilePath` |
+
+> Security Note: Never commit ClientSecret to source control. Use Environment Variables or .NET User Secrets for sensitive values.
+> 
+
+### 3. Configuration Properties
+
+The following settings are available in the `TnSdkSettings` class.
+
+| Property | Type | Default | Description |
+| --- | --- | --- | --- |
+| **`ClientId`** | `string` | *Required* | Your Trip Ninja API Client ID. |
+| **`ClientSecret`** | `string` | *Required* | Your Trip Ninja API Client Secret. |
+| **`ApiUrl`** | `string` | `https://api.tripninja.io` | The base URL for the API. Use `https://sandbox.tripninja.io` for testing. |
+| **`AuthEndpoint`** | `string` | `/sdk/auth/` | The relative path to the authentication endpoint. |
+| **`TimeoutSeconds`** | `int` | `30` | Request timeout in seconds. |
+| **`CredentialFilePath`** | `string` | `credentials.json` | Path to the file where the temporary access token is cached. |
+
 
 ## Development
 
