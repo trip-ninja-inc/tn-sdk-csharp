@@ -95,7 +95,7 @@ var requestData = new
 // Serialise to JSON
 string json = JsonSerializer.Serialize(requestData);
 
-string compressedData = tnClient.PrepareDataForGenerateSolutions(json);
+string compressedData = api.PrepareDataForGenerateSolutions(json);
 
 // The method compresses the request data and returns the compressed result
 ```
